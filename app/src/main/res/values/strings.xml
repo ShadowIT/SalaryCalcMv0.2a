@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">SalaryCalcM</string>
+    <string name="app_name_hidden">SalaryCalcMv0.2g by Shadow</string>
+    <string name="base">Оклад:</string>
+    <string name="regionalCoeff">Рк(%)</string>
+    <string name="bonus">П(%)</string>
+    <string name="harm">В(%)</string>
+    <string name="substitPerc">Зам(%)</string>
+    <string name="substitHour">Зам(час)</string>
+    <string name="singlePay">Ед.в</string>
+    <string name="salary">Итого:</string>
+    <string name="clearSalary">На руки:</string>
+    <string name="inHourSalary">В час:</string>
+    <string name="overWork">Праб(р):</string>
+    <string name="overWorkH">Праб(ч):</string>
+    <string name="overWorkClear">Праб(р-13%):</string>
+    <string name="workHours">Раб.ч:</string>
+    <string name="calc">Рассчёт</string>
+    <string name="reset">Сброс</string>
+    <string name="tax">Тариф</string>
+    <string name="date">Дата</string>
+    <string name="hours">Часы</string>
+    <string name="add">Добавить</string>
+    <string name="delete">Удалить</string>
+    <string name="zero">0</string>
+</resources>
