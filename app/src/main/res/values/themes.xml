@@ -6,6 +6,7 @@
     </style>
 
     <style name="Theme.SalaryCalcMv02a" parent="Base.Theme.SalaryCalcMv02a" />
+
     <style name="black" parent="Theme.AppCompat">
         <item name="colorPrimary">@color/black</item>
         <item name="colorAccent">@color/black</item>

@@ -1,5 +1,6 @@
 package com.example.salarycalcmv02a;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -33,12 +34,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    SharedPreferences settings;
+    SharedPreferences settings;         //  Для сохранения данных при выходе из приложения
     ArrayList<String> overWorkArray;   //  Массив с переработками
     ListView overWorkList;  //  Отображение массива с переработками на экране
     ArrayAdapter<String> overWorkAdapter;   //  Адаптер для связи массива с переработками
                                             // и списка на экране
-    Map<String, Integer> overWorkMap = new HashMap<String, Integer>();
+    Map<String, Integer> overWorkMap = new HashMap<String, Integer>();  //  Для рассчёта переработок
     TextView base;
     TextView regionalCoeff;
     TextView harm;
@@ -55,6 +56,15 @@ public class MainActivity extends AppCompatActivity {
     TextView overWorkH;
     TextView overWork;
     TextView overWorkClear;
+
+    Boolean bEasterEgg = false;
+    Boolean bEasterEggShowOnce = false;
+    int EASTEREGG_SHOW = 100000;
+
+    public void btnLegendOnClickEvent(View view) {
+        Intent intent = new Intent(this, LegendActivity.class);
+        startActivity(intent);
+    }
 
     static class SalaryType {
         public
@@ -104,9 +114,9 @@ public class MainActivity extends AppCompatActivity {
     }
     SalaryType salaryData = new SalaryType(); //  Создание ссылки на структуру данных зарплаты
     CalendarView calendar;
-    String strForCheckDublicat;
-    int dayOfWeek;
-    boolean tax = false;
+    String strForCheckDublicat;     //  Строка дляпроверки на дубликат строки при добавлении записи о переработке
+    int dayOfWeek;                  //  День недели
+    boolean tax = false;            //  Значение чекбокса Тариф
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -180,6 +190,12 @@ public class MainActivity extends AppCompatActivity {
 
         strForCheckDublicat = "null";
 
+        TextView oklad = findViewById(R.id.oklad);
+        if(tax)
+            oklad.setText("Ставка:");
+        else
+            oklad.setText("Оклад:");
+
         //  Установка текущей даты в календаре при начальной загрузке приложения.
         //CalendarView c = (CalendarView)findViewById(R.id.datePicker);
         //c.setDate(System.currentTimeMillis());
@@ -231,6 +247,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 tax = isChecked;
+                TextView oklad = findViewById(R.id.oklad);
+                if(tax)
+                    oklad.setText("Ставка:");
+                else
+                    oklad.setText("Оклад:");
             }
         });
 
@@ -251,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
                 + salaryData.singlePay + substituteTotal + overWorkCalc();
 
         salaryData.totalSalaryWithoutOverwork = salaryData.totalSalary - (salaryData.base * (1.00F + salaryData.bonus / 100.00F)
-                + 0) * ( 1.00F + (salaryData.harm / 100.00F)) * (1.00F + (salaryData.regK / 100.00F))
+                + 0.0F) * ( 1.00F + (salaryData.harm / 100.00F)) * (1.00F + (salaryData.regK / 100.00F))
                 + salaryData.singlePay + substituteTotal;
 
         salaryData.clearSalary = salaryData.totalSalary * 0.87F;
@@ -265,13 +286,14 @@ public class MainActivity extends AppCompatActivity {
         salaryData.overWorks = hours;
         float substituteTotal = salaryData.salaryInHour * (salaryData.substituteP / 100.00F)
                 * salaryData.substituteH;
-        salaryData.totalSalary = (salaryData.base * salaryData.workHours +
+        salaryData.totalSalary = ((salaryData.base * salaryData.workHours + hours * salaryData.salaryInHour) +
                 ((salaryData.substituteH * (salaryData.base * (salaryData.substituteP / 100.00F)))
                 / salaryData.workHours)) * (1.00F + ((salaryData.bonus / 100.00F) + (salaryData.harm / 100.00F)))
-                * (1.00F + salaryData.regK / 100.00F) + salaryData.singlePay + overWorkCalc();
-        salaryData.totalSalaryWithoutOverwork = salaryData.totalSalary - (salaryData.base * (1.00F + salaryData.bonus / 100.00F)
-                    + 0.0F) * ( 1.00F + (salaryData.harm / 100.00F)) * (1.00F + (salaryData.regK / 100.00F))
-                    + salaryData.singlePay + substituteTotal;
+                * (1.00F + salaryData.regK / 100.00F) + salaryData.singlePay + substituteTotal + overWorkCalc();
+        salaryData.totalSalaryWithoutOverwork = salaryData.totalSalary - (salaryData.base * salaryData.workHours +
+                ((salaryData.substituteH * (salaryData.base * (salaryData.substituteP / 100.00F)))
+                        / salaryData.workHours)) * (1.00F + ((salaryData.bonus / 100.00F) + (salaryData.harm / 100.00F)))
+                * (1.00F + salaryData.regK / 100.00F) + salaryData.singlePay + substituteTotal;
 
         salaryData.clearSalary = salaryData.totalSalary * 0.87F;
     }
@@ -368,15 +390,23 @@ public class MainActivity extends AppCompatActivity {
         overWorkH = findViewById(R.id.overWorkH);
         overWork = findViewById(R.id.overWork);
         overWorkClear = findViewById(R.id.overWorkClear);
+        if(base.getText().toString().isEmpty())    salaryData.base = 0.0F;
+        else salaryData.base = Integer.parseInt(base.getText().toString());
+        if(regionalCoeff.getText().toString().isEmpty())    salaryData.regK = 0.0F;
+        else salaryData.regK = Float.parseFloat(regionalCoeff.getText().toString());
+        if(bonus.getText().toString().isEmpty())    salaryData.bonus = 0.0F;
+        else salaryData.bonus = Float.parseFloat(bonus.getText().toString());
+        if(harm.getText().toString().isEmpty())    salaryData.harm = 0.0F;
+        else salaryData.harm = Float.parseFloat(harm.getText().toString());
+        if(substitutePerc.getText().toString().isEmpty())    salaryData.substituteP = 0.0F;
+        else salaryData.substituteP = Float.parseFloat(substitutePerc.getText().toString());
+        if(substituteHours.getText().toString().isEmpty())    salaryData.substituteH = 0.0F;
+        else salaryData.substituteH = Float.parseFloat(substituteHours.getText().toString());
+        if(singlePay.getText().toString().isEmpty())    salaryData.singlePay = 0.0F;
+        else salaryData.singlePay = Float.parseFloat(singlePay.getText().toString());
+        if(workHours.getText().toString().isEmpty())    salaryData.workHours = 0.0F;
+        else salaryData.workHours = Float.parseFloat(workHours.getText().toString());
 
-        salaryData.base = Integer.parseInt(base.getText().toString());
-        salaryData.regK = Float.parseFloat(regionalCoeff.getText().toString());
-        salaryData.bonus = Float.parseFloat(bonus.getText().toString());
-        salaryData.harm = Float.parseFloat(harm.getText().toString());
-        salaryData.substituteP = Float.parseFloat(substitutePerc.getText().toString());
-        salaryData.substituteH = Float.parseFloat(substituteHours.getText().toString());
-        salaryData.singlePay = Float.parseFloat(singlePay.getText().toString());
-        salaryData.workHours = Float.parseFloat(workHours.getText().toString());
         if(!tax)
             salaryCalc(salaryData);
         else
@@ -411,6 +441,24 @@ public class MainActivity extends AppCompatActivity {
         prefEditor.putInt("overWorkMapSize", overWorkMap.size());
         prefEditor.putBoolean("tax", tax);
         prefEditor.apply();
+
+        //  Easter Egg
+        TextView eg = findViewById(R.id.EasterEgg);
+
+        //if(bEasterEgg)
+        //    eg.setVisibility(View.VISIBLE);
+        //else
+        //    eg.setVisibility(View.INVISIBLE);
+        //if(bEasterEggShowOnce && bEasterEgg)
+        //    bEasterEgg = false;
+        if(bEasterEgg)
+            eg.setVisibility(View.INVISIBLE);
+        if((salaryData.totalSalaryWithoutOverwork * 0.87F > EASTEREGG_SHOW) && !bEasterEgg) {
+            eg.setVisibility(View.VISIBLE);
+            bEasterEgg = true;
+            //bEasterEggShowOnce = true;
+
+        }
 
         //salaryData.init();
     }
@@ -452,6 +500,12 @@ public class MainActivity extends AppCompatActivity {
         overWorkArray.clear();
         overWorkMap.clear();
         overWorkAdapter.notifyDataSetChanged();
+
+        TextView eg = findViewById(R.id.EasterEgg);
+        if(bEasterEgg) {
+            eg.setVisibility(View.INVISIBLE);
+            bEasterEgg = false;
+        }
 
     }
 }

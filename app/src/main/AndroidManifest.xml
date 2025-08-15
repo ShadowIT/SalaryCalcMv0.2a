@@ -13,6 +13,10 @@
         android:theme="@style/Theme.SalaryCalcMv02a"
         tools:targetApi="31">
         <activity
+            android:name=".LegendActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SalaryCalcMv02a" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
